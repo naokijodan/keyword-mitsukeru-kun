@@ -1,0 +1,87 @@
+/* eBay Keyword Highlighter Styles */
+
+/* Registered/Watched keywords - Green */
+.ekh-watched {
+  background-color: #90EE90 !important;
+  border-radius: 2px;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+/* New keywords - Yellow */
+.ekh-new {
+  background-color: #FFEB3B !important;
+  border-radius: 2px;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.ekh-new:hover,
+.ekh-watched:hover {
+  opacity: 0.8;
+}
+
+/* Excluded title - Entire row/title grayed out */
+.ekh-excluded-title {
+  opacity: 0.35 !important;
+  filter: grayscale(50%);
+}
+
+/* Also gray out parent container if possible */
+.ekh-excluded-title,
+.ekh-excluded-title * {
+  color: #999 !important;
+}
+
+/* Tooltip popup */
+.ekh-tooltip {
+  position: absolute;
+  background: #333;
+  color: white;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  z-index: 999999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  min-width: 160px;
+}
+
+.ekh-tooltip button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  margin: 6px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  transition: opacity 0.2s;
+}
+
+.ekh-tooltip button:first-of-type {
+  margin-top: 0;
+}
+
+.ekh-tooltip button:last-of-type {
+  margin-bottom: 0;
+}
+
+.ekh-tooltip button.watch {
+  background: #4CAF50;
+  color: white;
+}
+
+.ekh-tooltip button.exclude {
+  background: #f44336;
+  color: white;
+}
+
+.ekh-tooltip button.remove {
+  background: #757575;
+  color: white;
+}
+
+.ekh-tooltip button:hover {
+  opacity: 0.85;
+}

@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 320px;
+      min-height: 300px;
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      background: #f5f5f5;
+    }
+
+    h1 {
+      margin: 0 0 16px 0;
+      font-size: 15px;
+      color: #333;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px 8px;
+      border: none;
+      background: #ddd;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .tab.active {
+      background: #4CAF50;
+      color: white;
+    }
+
+    .tab.exclude.active {
+      background: #f44336;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .add-form input {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .add-form input:focus {
+      outline: none;
+      border-color: #4CAF50;
+    }
+
+    .add-form button {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      background: #4CAF50;
+      color: white;
+    }
+
+    .add-form button:hover {
+      background: #45a049;
+    }
+
+    .keyword-list {
+      background: white;
+      border-radius: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+    }
+
+    .keyword-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .keyword-item:last-child {
+      border-bottom: none;
+    }
+
+    .keyword-item span {
+      flex: 1;
+    }
+
+    .keyword-item button {
+      background: none;
+      border: none;
+      color: #ccc;
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .keyword-item button:hover {
+      color: #f44336;
+    }
+
+    .empty {
+      padding: 24px;
+      text-align: center;
+      color: #999;
+    }
+
+    .legend {
+      margin-top: 16px;
+      padding: 12px;
+      background: white;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      font-size: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 6px 0;
+    }
+
+    .legend-color {
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .legend-color.green {
+      background: #90EE90;
+    }
+
+    .legend-color.yellow {
+      background: #FFEB3B;
+    }
+
+    .legend-color.gray {
+      background: #ddd;
+      opacity: 0.5;
+    }
+
+    .actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .actions button {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      background: white;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+
+    .actions button:hover {
+      background: #f5f5f5;
+    }
+
+    .count {
+      font-size: 11px;
+      color: #999;
+      margin-left: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>eBay Keyword Highlighter</h1>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="watched">
+      注目 <span id="watched-count" class="count">(0)</span>
+    </button>
+    <button class="tab exclude" data-tab="excluded">
+      除外 <span id="excluded-count" class="count">(0)</span>
+    </button>
+  </div>
+
+  <div id="watched-section" class="section active">
+    <div class="add-form">
+      <input type="text" id="watched-input" placeholder="ブランド名を追加...">
+      <button id="add-watched">追加</button>
+    </div>
+    <div id="watched-list" class="keyword-list"></div>
+  </div>
+
+  <div id="excluded-section" class="section">
+    <div class="add-form">
+      <input type="text" id="excluded-input" placeholder="除外ワードを追加...">
+      <button id="add-excluded">追加</button>
+    </div>
+    <div id="excluded-list" class="keyword-list"></div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-color green"></div>
+      <span>注目キーワード</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color yellow"></div>
+      <span>未分類キーワード（クリックで追加/除外）</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-color gray"></div>
+      <span>除外ワードを含むタイトル（薄く表示）</span>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button id="export-btn">エクスポート</button>
+    <button id="import-btn">インポート</button>
+  </div>
+
+  <input type="file" id="import-file" accept=".json" style="display: none;">
+
+  <script src="popup.js"></script>
+</body>
+</html>

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "eBay Keyword Highlighter",
+  "name": "キーワードみつける君",
   "version": "1.0.0",
-  "description": "Highlight and discover keywords while researching on eBay",
+  "description": "リサーチ中に新しいキーワードを発見・管理。注目キーワードは緑、未分類は黄色でハイライト。",
   "permissions": [
     "storage",
     "contextMenus",
@@ -24,14 +24,10 @@
   "content_scripts": [
     {
       "matches": [
-        "https://*.ebay.com/*",
-        "https://*.ebay.co.uk/*",
-        "https://*.ebay.de/*",
-        "https://*.ebay.fr/*",
-        "https://*.ebay.it/*",
-        "https://*.ebay.es/*",
-        "https://*.ebay.com.au/*",
-        "https://*.ebay.ca/*"
+        "https://*.ebay.com/sh/research*",
+        "https://*.ebay.com/sch/*",
+        "https://*.ebay.co.uk/sh/research*",
+        "https://*.ebay.co.uk/sch/*"
       ],
       "js": ["content.js"],
       "css": ["styles.css"]

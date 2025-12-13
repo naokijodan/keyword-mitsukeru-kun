@@ -128,19 +128,10 @@ class KeywordHighlighter {
   getTitleElements() {
     const elements = [];
 
-    // Terapeak / Seller Hub Research results - Only the Listing column
-    // Target the first column which contains product titles
+    // Terapeak / Seller Hub Research results
+    // Product titles have data-item-id attribute
     const terapeakTitles = document.querySelectorAll(
-      // Seller Hub Research table - listing title cell
-      '[data-test-id="listing-title"], ' +
-      '.listing-title, ' +
-      '.research__listing-title, ' +
-      // Table structure - first cell with product link (not header)
-      'table tbody tr td:first-child > a[href*="/itm/"], ' +
-      'table tbody tr td:first-child > div > a[href*="/itm/"], ' +
-      // Listing column specifically
-      'td.listing a[href*="/itm/"], ' +
-      'td[data-column="listing"] a'
+      'span[data-item-id]'
     );
     elements.push(...terapeakTitles);
 
@@ -178,12 +169,18 @@ class KeywordHighlighter {
     const originalText = element.textContent;
     const lowerText = originalText.toLowerCase();
 
-    // Check if title contains any excluded keywords → Gray out entire title
+    // Check if title contains watched keywords
+    const hasWatched = this.watchedKeywords.some(keyword =>
+      lowerText.includes(keyword.toLowerCase())
+    );
+
+    // Check if title contains excluded keywords
     const hasExcluded = this.excludedKeywords.some(keyword =>
       lowerText.includes(keyword.toLowerCase())
     );
 
-    if (hasExcluded) {
+    // Gray out only if excluded AND no watched keywords (watched takes priority)
+    if (hasExcluded && !hasWatched) {
       element.classList.add('ekh-excluded-title');
       return; // Don't process further
     }

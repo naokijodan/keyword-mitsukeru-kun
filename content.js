@@ -185,58 +185,107 @@ class KeywordHighlighter {
       return; // Don't process further
     }
 
-    // Find watched keywords to highlight
-    const watchedMatches = [];
+    // Process text nodes only to avoid breaking existing HTML structure
+    this.highlightTextNodes(element);
+  }
+
+  highlightTextNodes(element) {
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT,
+      null,
+      false
+    );
+
+    const textNodes = [];
+    let node;
+    while (node = walker.nextNode()) {
+      if (node.textContent.trim()) {
+        textNodes.push(node);
+      }
+    }
+
+    textNodes.forEach(textNode => {
+      const text = textNode.textContent;
+      const fragments = this.createHighlightedFragments(text);
+
+      if (fragments) {
+        textNode.parentNode.replaceChild(fragments, textNode);
+      }
+    });
+  }
+
+  createHighlightedFragments(text) {
+    // Find all matches
+    const matches = [];
+
+    // Watched keywords
     this.watchedKeywords.forEach(keyword => {
       const regex = new RegExp(`(${this.escapeRegex(keyword)})`, 'gi');
       let match;
-      while ((match = regex.exec(originalText)) !== null) {
-        watchedMatches.push({
+      while ((match = regex.exec(text)) !== null) {
+        matches.push({
           keyword: match[1],
           index: match.index,
+          length: match[1].length,
           type: 'watched'
         });
       }
     });
 
-    // Find new keywords to highlight
-    const newKeywords = this.extractKeywords(originalText);
-    const newMatches = [];
+    // New keywords
+    const newKeywords = this.extractKeywords(text);
     newKeywords.forEach(keyword => {
       const regex = new RegExp(`\\b(${this.escapeRegex(keyword)})\\b`, 'gi');
       let match;
-      while ((match = regex.exec(originalText)) !== null) {
-        // Make sure it doesn't overlap with watched keywords
-        const overlaps = watchedMatches.some(w =>
-          (match.index >= w.index && match.index < w.index + w.keyword.length) ||
-          (w.index >= match.index && w.index < match.index + match[1].length)
+      while ((match = regex.exec(text)) !== null) {
+        // Check overlap with watched
+        const overlaps = matches.some(m =>
+          (match.index >= m.index && match.index < m.index + m.length) ||
+          (m.index >= match.index && m.index < match.index + match[1].length)
         );
         if (!overlaps) {
-          newMatches.push({
+          matches.push({
             keyword: match[1],
             index: match.index,
+            length: match[1].length,
             type: 'new'
           });
         }
       }
     });
 
-    // Combine and sort by index (descending to replace from end)
-    const allMatches = [...watchedMatches, ...newMatches]
-      .sort((a, b) => b.index - a.index);
+    if (matches.length === 0) return null;
 
-    if (allMatches.length === 0) return;
+    // Sort by index
+    matches.sort((a, b) => a.index - b.index);
 
-    // Build new HTML
-    let html = originalText;
-    allMatches.forEach(match => {
-      const before = html.substring(0, match.index);
-      const after = html.substring(match.index + match.keyword.length);
-      const className = match.type === 'watched' ? 'ekh-watched' : 'ekh-new';
-      html = before + `<span class="${className}" data-keyword="${this.escapeHtml(match.keyword)}">${this.escapeHtml(match.keyword)}</span>` + after;
+    // Build fragment
+    const fragment = document.createDocumentFragment();
+    let lastIndex = 0;
+
+    matches.forEach(match => {
+      // Add text before match
+      if (match.index > lastIndex) {
+        fragment.appendChild(document.createTextNode(text.substring(lastIndex, match.index)));
+      }
+
+      // Add highlighted span
+      const span = document.createElement('span');
+      span.className = match.type === 'watched' ? 'ekh-watched' : 'ekh-new';
+      span.dataset.keyword = match.keyword;
+      span.textContent = match.keyword;
+      fragment.appendChild(span);
+
+      lastIndex = match.index + match.length;
     });
 
-    element.innerHTML = html;
+    // Add remaining text
+    if (lastIndex < text.length) {
+      fragment.appendChild(document.createTextNode(text.substring(lastIndex)));
+    }
+
+    return fragment;
   }
 
   escapeRegex(string) {

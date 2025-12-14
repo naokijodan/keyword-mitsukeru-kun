@@ -50,6 +50,10 @@
       background: #f44336;
     }
 
+    .tab.ignore.active {
+      background: #9E9E9E;
+    }
+
     .section {
       display: none;
     }
@@ -208,6 +212,9 @@
     <button class="tab exclude" data-tab="excluded">
       除外 <span id="excluded-count" class="count">(0)</span>
     </button>
+    <button class="tab ignore" data-tab="ignored">
+      無視 <span id="ignored-count" class="count">(0)</span>
+    </button>
   </div>
 
   <div id="watched-section" class="section active">
@@ -224,6 +231,14 @@
       <button id="add-excluded">追加</button>
     </div>
     <div id="excluded-list" class="keyword-list"></div>
+  </div>
+
+  <div id="ignored-section" class="section">
+    <div class="add-form">
+      <input type="text" id="ignored-input" placeholder="無視ワードを追加...">
+      <button id="add-ignored">追加</button>
+    </div>
+    <div id="ignored-list" class="keyword-list"></div>
   </div>
 
   <div class="legend">

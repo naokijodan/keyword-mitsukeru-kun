@@ -55,17 +55,32 @@ class PopupManager {
         document.getElementById('add-excluded').click();
       }
     });
+
+    // Ignored keywords
+    document.getElementById('add-ignored').addEventListener('click', () => {
+      const input = document.getElementById('ignored-input');
+      if (input.value.trim()) {
+        this.addKeyword('ignoredKeywords', input.value.trim());
+        input.value = '';
+      }
+    });
+
+    document.getElementById('ignored-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        document.getElementById('add-ignored').click();
+      }
+    });
   }
 
   setupActions() {
     // Export
     document.getElementById('export-btn').addEventListener('click', async () => {
-      const data = await chrome.storage.local.get(['watchedKeywords', 'excludedKeywords']);
+      const data = await chrome.storage.local.get(['watchedKeywords', 'excludedKeywords', 'ignoredKeywords']);
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `ebay-keywords-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `keywords-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -81,10 +96,11 @@ class PopupManager {
         const text = await file.text();
         try {
           const data = JSON.parse(text);
-          if (data.watchedKeywords || data.excludedKeywords) {
+          if (data.watchedKeywords || data.excludedKeywords || data.ignoredKeywords) {
             await chrome.storage.local.set({
               watchedKeywords: data.watchedKeywords || [],
-              excludedKeywords: data.excludedKeywords || []
+              excludedKeywords: data.excludedKeywords || [],
+              ignoredKeywords: data.ignoredKeywords || []
             });
             await this.loadLists();
             alert('インポート完了！');
@@ -97,17 +113,20 @@ class PopupManager {
   }
 
   async loadLists() {
-    const data = await chrome.storage.local.get(['watchedKeywords', 'excludedKeywords']);
+    const data = await chrome.storage.local.get(['watchedKeywords', 'excludedKeywords', 'ignoredKeywords']);
 
     const watchedCount = (data.watchedKeywords || []).length;
     const excludedCount = (data.excludedKeywords || []).length;
+    const ignoredCount = (data.ignoredKeywords || []).length;
 
     this.renderList('watched-list', data.watchedKeywords || [], 'watchedKeywords');
     this.renderList('excluded-list', data.excludedKeywords || [], 'excludedKeywords');
+    this.renderList('ignored-list', data.ignoredKeywords || [], 'ignoredKeywords');
 
     // Update counts
     document.getElementById('watched-count').textContent = `(${watchedCount})`;
     document.getElementById('excluded-count').textContent = `(${excludedCount})`;
+    document.getElementById('ignored-count').textContent = `(${ignoredCount})`;
   }
 
   renderList(containerId, keywords, listName) {

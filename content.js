@@ -4,6 +4,7 @@ class KeywordHighlighter {
   constructor() {
     this.watchedKeywords = [];
     this.excludedKeywords = [];
+    this.ignoredKeywords = [];
     this.processedElements = new WeakSet();
     this.tooltip = null;
 
@@ -80,7 +81,7 @@ class KeywordHighlighter {
 
     // Listen for storage changes
     chrome.storage.onChanged.addListener((changes) => {
-      if (changes.watchedKeywords || changes.excludedKeywords) {
+      if (changes.watchedKeywords || changes.excludedKeywords || changes.ignoredKeywords) {
         this.loadKeywords().then(() => {
           this.processedElements = new WeakSet();
           this.highlightPage();
@@ -90,9 +91,10 @@ class KeywordHighlighter {
   }
 
   async loadKeywords() {
-    const data = await chrome.storage.local.get(['watchedKeywords', 'excludedKeywords']);
+    const data = await chrome.storage.local.get(['watchedKeywords', 'excludedKeywords', 'ignoredKeywords']);
     this.watchedKeywords = (data.watchedKeywords || []).map(k => k.toLowerCase());
     this.excludedKeywords = (data.excludedKeywords || []).map(k => k.toLowerCase());
+    this.ignoredKeywords = (data.ignoredKeywords || []).map(k => k.toLowerCase());
   }
 
   // Extract potential keywords from text
@@ -114,9 +116,10 @@ class KeywordHighlighter {
       // Skip common words
       if (this.commonWords.has(cleaned.toLowerCase())) continue;
 
-      // Skip if already in our watched/excluded (will be handled separately)
+      // Skip if already in our watched/excluded/ignored (will be handled separately)
       if (this.watchedKeywords.includes(cleaned.toLowerCase())) continue;
       if (this.excludedKeywords.includes(cleaned.toLowerCase())) continue;
+      if (this.ignoredKeywords.includes(cleaned.toLowerCase())) continue;
 
       keywords.push(cleaned);
     }
@@ -352,13 +355,14 @@ class KeywordHighlighter {
       this.tooltip.innerHTML = `
         <div style="margin-bottom: 8px; font-weight: bold;">"${keyword}"</div>
         <button class="exclude">✗ 除外に移動</button>
-        <button class="remove">削除 (ハイライトなし)</button>
+        <button class="ignore">− 無視（色なし）</button>
       `;
     } else {
       this.tooltip.innerHTML = `
         <div style="margin-bottom: 8px; font-weight: bold;">"${keyword}"</div>
         <button class="watch">✓ 注目に追加</button>
         <button class="exclude">✗ 除外に追加</button>
+        <button class="ignore">− 無視（色なし）</button>
       `;
     }
 
@@ -374,7 +378,7 @@ class KeywordHighlighter {
     // Button handlers
     const watchBtn = this.tooltip.querySelector('.watch');
     const excludeBtn = this.tooltip.querySelector('.exclude');
-    const removeBtn = this.tooltip.querySelector('.remove');
+    const ignoreBtn = this.tooltip.querySelector('.ignore');
 
     if (watchBtn) {
       watchBtn.addEventListener('click', () => {
@@ -394,9 +398,12 @@ class KeywordHighlighter {
       });
     }
 
-    if (removeBtn) {
-      removeBtn.addEventListener('click', () => {
-        this.removeFromList('watchedKeywords', keyword);
+    if (ignoreBtn) {
+      ignoreBtn.addEventListener('click', () => {
+        if (isWatched) {
+          this.removeFromList('watchedKeywords', keyword);
+        }
+        this.addToList('ignoredKeywords', keyword);
         this.hideTooltip();
       });
     }

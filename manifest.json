@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "キーワードみつける君",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "リサーチ中に新しいキーワードを発見・管理。注目キーワードは緑、未分類は黄色でハイライト。",
   "permissions": [
     "storage",
